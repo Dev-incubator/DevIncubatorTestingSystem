@@ -3,6 +3,7 @@ package com.example.dits.controllers;
 import com.example.dits.dto.*;
 import com.example.dits.entity.Topic;
 import com.example.dits.service.TopicService;
+import com.example.dits.service.UserService;
 import com.example.dits.service.impl.StatisticServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -21,10 +22,10 @@ public class AdminStatisticController {
     private final ModelMapper modelMapper;
     private final StatisticServiceImpl statisticService;
     private final TopicService topicService;
+    private final UserService userService;
 
     @GetMapping("/adminStatistic")
     public String testStatistic(ModelMap model){
-
         List<TopicDTO> topicDTOList = topicService.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
         model.addAttribute("topicList",topicDTOList);
         model.addAttribute("title","Statistic");
@@ -39,6 +40,7 @@ public class AdminStatisticController {
 
     @GetMapping("/getUserStatistic")
     public String userStatistic(ModelMap model){
+        model.addAttribute("usersList", userService.getAllUsers());
         return "admin/user-statistic";
     }
 

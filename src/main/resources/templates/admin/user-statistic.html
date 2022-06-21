@@ -10,14 +10,12 @@
                 <div class="result__control">
                     <div class="text-start my-3">Select a student</div>
                     <div class="d-flex gy-2 justify-content-between flex-wrap">
-                        <label for="themeSelect">
-                            <select class="col-md-5 col-12 theme-select" name="theme" id="themeSelect">
-                                <option value="" selected disabled>Student name</option>
-                                <option th:each="user : ${userListStat}" th:value="${user.userId}"
-                                        th:text="${user.firstName}+ ' ' + ${user.lastName}">Username
-                                </option>
-                            </select>
-                        </label>
+                        <select class="col-md-5 col-12 theme-select" name="theme" id="themeSelect">
+                            <option value="" selected disabled>Student name</option>
+                            <option th:each="user : ${usersList}" th:value="${user.userId}"
+                                    th:text="${user.firstName}+ ' ' + ${user.lastName}">Username
+                            </option>
+                        </select>
                         <a th:href="@{/admin/adminStatistic}" href="#"
                            class="col-md-5 col-12 result__link text-center">Test
                             statistics</a>
@@ -31,7 +29,9 @@
                             <div class="text-center grid__head-item">Pass</div>
                             <div class="text-center grid__head-item">
                                 <span>Average</span>
-                                <button class="sort-button" id="sortTestsButton"><img th:src="@{/img/sort-icon.svg}" alt="sort-icon" src="/img/sort-icon.svg">
+                                <button class="sort-button" id="sortTestsButton"><img th:src="@{/img/sort-icon.svg}"
+                                                                                      alt="sort-icon"
+                                                                                      src="/img/sort-icon.svg">
                                 </button>
                             </div>
                         </div>
