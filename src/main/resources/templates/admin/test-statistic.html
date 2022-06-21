@@ -1,4 +1,4 @@
-<div th:replace="/fragments/header"></div>
+<div th:replace="fragments/header"></div>
 
 <main class="container">
     <section class="result col-12">
@@ -32,7 +32,7 @@
                                 <span>Average</span>
                                 <button class="sort-button" id="sortTestsButton"><img
                                         src="../../static/img/sort-icon.svg"
-                                        th:src="@{/img/sort-icon.svg}"></button>
+                                        th:src="@{/img/sort-icon.svg}" alt="sort-icon"></button>
                             </div>
                         </div>
                     </div>
@@ -45,8 +45,6 @@
     </section>
 </main>
 
-<div th:replace="/fragments/footer"></div>
-<div th:replace="/fragments/modals"></div>
+<div th:replace="fragments/footer"></div>
+<div th:replace="fragments/modals"></div>
 <script src="../../static/js/test-statistic.js" th:src="@{/js/test-statistic.js}"></script>
-</body>
-</html>
