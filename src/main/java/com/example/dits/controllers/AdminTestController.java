@@ -9,14 +9,10 @@ import com.example.dits.mapper.QuestionMapper;
 import com.example.dits.mapper.TestMapper;
 import com.example.dits.service.*;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,11 +26,9 @@ public class AdminTestController {
     private final TestMapper testMapper;
     private final QuestionMapper questionMapper;
     private final RoleService roleService;
-    private final UserService userService;
 
     @GetMapping("/testBuilder")
-    public String getTopics(ModelMap model, HttpSession session) {
-        session.setAttribute("user",userService.getUserByLogin(getPrincipal()));
+    public String getTopics(ModelMap model) {
         model.addAttribute("topicLists",topicService.findAll());
         model.addAttribute("title","Test editor");
         return "admin/test-editor";
@@ -140,18 +134,5 @@ public class AdminTestController {
 
     private List<TopicDTO> getTopicDTOList() {
         return topicService.findAll();
-    }
-
-    private static String getPrincipal(){
-        String userName;
-        Object principal = SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-
-        if(principal instanceof UserDetails){
-            userName = ((UserDetails) principal).getUsername();
-        }
-        else
-            userName = principal.toString();
-        return userName;
     }
 }
