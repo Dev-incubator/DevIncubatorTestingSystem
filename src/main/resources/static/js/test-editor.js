@@ -26,6 +26,8 @@ let isNewQuestion = false;
 let currentTestId = null;
 let currentQuestionId = null;
 let isNewTest = true;
+const createNewTestForm = document.getElementById('newTestForm');
+const newTestFormCloseButton = document.getElementById('newTestFormCloseButton');
 const createNewTestButton = document.getElementById('createNewTestButton');
 const questionModalCloseButton = document.getElementById('questionModalCloseButton');
 const token = document.head.querySelector('meta[name="_csrf"]').getAttribute('content');
@@ -40,106 +42,79 @@ let currentThemeId = null;
 let dataByTopicId = null;
 const baseUrl = window.origin;
 
-function getQuestionHtml({name, testId, questions}) {
-    const question = document.createElement('div');
-    question.className = 'test';
-    question.dataset.id = testId;
-    question.innerHTML = `
-    <div class="row">
-      <a class="col-md-9 test__text" data-bs-toggle="collapse" href='#test${testId}' role="button" aria-expanded="false" aria-controls="collapseExample">
-        ${name}
-      </a>
-      <button class="col-md-3 test__add-button text-md-end text-start" data-bs-toggle="modal" data-bs-target="#questionModal">new question <img class="pl-1 icon-btn" src="/img/add-icon.svg" alt="Add new question"></button>
-      <div class="col-md-3 test__control text-md-end">
-        <button class="test__edit-button"><img src="/img/edit-icon.svg" alt="Edit test" class="icon-btn"></button>
-        <button class="test__delete-button"><img src="/img/delete-icon.svg" alt="Delete test" class="icon-btn"></button>
-      </div>
-    </div>
-    <div class="collapse question__list mt-3" id=test${testId} data-test-id=${testId}>
-      ${
-        questions.reduce((accum, {questionId, description}, index) => {
-            return `
-            <div class="row question__item mb-2 mt-3" data-id=${questionId}>
-              <span class="index-num">${index + 1}.</span>
-              <div class="col-10 form-input" type="text">${description}</div>
-              <div class="question-control col-2 text-end">
-                <button class='question__edit-button' data-bs-toggle="modal" data-bs-target="#questionModal"><img src="/img/edit-icon.svg" alt="Edit test question" class="icon-btn"></button>
-                <button class='question__delete-button'><img src="/img/delete-icon.svg" alt="Delete test question" class="icon-btn"></button>
-              </div>
-            </div>
-          `
-        }, '')
-    }
-    </div>
-  `
-    return question
-
-}
-
-function changeActiveAddThemeFormStatus() {
-    addThemeForm.classList.toggle('active');
-    addThemeForm.previousElementSibling.classList.toggle('active');
-
-}
-function addThemeClickHandler(target) {
-    if (target.closest('.sidebar-add-theme__button')) {
-        changeActiveAddThemeFormStatus();
-    }
-
-}
-function deactivateAddThemeForm() {
-    addThemeForm.reset();
-    addThemeForm.classList.remove('active');
-
-}
-
 addThemeForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const newThemeValue = addThemeFormInput.value;
     deactivateAddThemeForm();
     if (newThemeValue.length) {
-        const url = new URL(baseUrl + "/admin/addTopic");
-        const topic = {topicName: newThemeValue};
-        const response = await fetch(url.toString(), {
-            method: 'POST', headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": token
-            },
-            body: JSON.stringify(topic)
-        });
-        const result = await response.json();
-        updateThemesList(result);
-        setActiveTopic(result.length - 1);
+        addTopic().then();
     }
-})
+});
 
-let result = null;
-async function getTestsData(themeId) {
-    const url = new URL(baseUrl + "/admin/getTests");
-    const params = {id: themeId};
-    url.search = new URLSearchParams(params).toString();
-    const response = await fetch(url.toString());
-    result = await response.json();
-    dataByTopicId = result;
-    return result;
-
-}
-async function setNewThemeTests(data) {
-    console.log(data);
-    let testsData;
-    if (data) {
-        testsData = data;
+createNewTestForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const formData = new FormData(createNewTestForm);
+    const testName = formData.get('testName');
+    const testDescription = formData.get('testDescription');
+    if (isNewTest) {
+        addNewTest(testName, testDescription).then();
     } else {
-        testsData = await getTestsData(currentThemeId);
+        editTest(testName, testDescription).then();
     }
-    detail.classList.add('active');
-    detailList.innerHTML = '';
-    console.log(testsData);
-    testsData.forEach(testData => {
-        detailList.appendChild(getQuestionHtml(testData))
-    })
+    createNewTestForm.reset();
+});
 
+document.addEventListener('click', (event) => {
+    const {target} = event;
+    if (target.closest('#testThemes')) {
+        testThemeClickHandler(event);
+        deactivateAddThemeForm();
+    } else if (target.closest('.sidebar-add-theme')) {
+        addThemeClickHandler(target);
+    } else if (target.closest('.detail__create')) {
+        createTestClickHandler(event);
+    } else if (target.closest('#detailList')) {
+        refreshThemesValues();
+        detailClickHandler(target);
+        deactivateAddThemeForm();
+    }
+});
+
+createQuestionForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    questionModalCloseButton.click();
+    addNewQuestion().then();
+});
+
+createQuestionForm.addEventListener('click', ({target}) => {
+    if (target.closest('.add-answer-button')) {
+        createNewQuestion()
+    } else if (target.closest('.answer__delete-button')) {
+        target.closest('.answer').remove();
+    }
+});
+
+detailList.addEventListener('click', ({target}) => {
+    if (target.closest('.test')) {
+        clickTestHandler(target);
+    }
+});
+
+async function addTopic() {
+    const url = new URL(baseUrl + "/admin/addTopic");
+    const topic = {topicName: newThemeValue};
+    const response = await fetch(url.toString(), {
+        method: 'POST', headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": token
+        },
+        body: JSON.stringify(topic)
+    });
+    const result = await response.json();
+    updateThemesList(result);
+    setActiveTopic(result.length - 1);
 }
+
 async function submitNewTheme(target) {
     const themeItem = target.closest('.theme__item');
     const themeId = themeItem.dataset.id;
@@ -160,6 +135,7 @@ async function submitNewTheme(target) {
     setActiveTopic(result.length - 1);
 
 }
+
 async function deleteTheme(target) {
     const themeItem = target.closest('.theme__item');
     const themeId = themeItem.dataset.id;
@@ -176,41 +152,36 @@ async function deleteTheme(target) {
     const result = await response.json();
     updateThemesList(result);
     setActiveTopic(result.length - result.length);
+}
+
+async function getTestsData(themeId) {
+    const url = new URL(baseUrl + "/admin/getTests");
+    const params = {id: themeId};
+    url.search = new URLSearchParams(params).toString();
+    const response = await fetch(url.toString());
+    let result = await response.json();
+    dataByTopicId = result;
+    return result;
 
 }
-function testThemeClickHandler(event) {
-    event.preventDefault();
-    const {target} = event;
-    const themeItem = target.closest('.theme-item');
-    if (themeItem) {
-        const themeId = themeItem.dataset.id;
-        if (target.closest('.theme-item__input')) {
-            if (themeId !== currentThemeId) {
-                detail.classList.remove('active');
-                currentThemeId = themeId;
-                const themeName = themeItem.querySelector('.theme-item__input').value;
-                setThemeTitle(themeName);
-                setNewThemeTests().then();
-            }
-        } else if (target.closest('.theme-item__edit')) {
-            setThemeEditMode(themeItem);
-        } else if (target.closest('.theme-item__submit')) {
-            submitNewTheme(target).then();
-        } else if (target.closest('.theme-item__delete')) {
-            deleteTheme(target).then();
-        }
+
+async function setNewThemeTests(data) {
+    console.log(data);
+    let testsData;
+    if (data) {
+        testsData = data;
+    } else {
+        testsData = await getTestsData(currentThemeId);
     }
+    detail.classList.add('active');
+    detailList.innerHTML = '';
+    console.log(testsData);
+    testsData.forEach(testData => {
+        detailList.appendChild(getQuestionHtml(testData))
+    })
 
 }
 
-const detailTitle = document.querySelector('.detail__title');
-function setThemeTitle(newName) {
-    detailTitle.textContent = newName;
-
-}
-const createNewTestForm = document.getElementById('newTestForm');
-
-const newTestFormCloseButton = document.getElementById('newTestFormCloseButton');
 async function addNewTest(name, description) {
     newTestFormCloseButton.click();
     const url = new URL(baseUrl + "/admin/addTest");
@@ -228,6 +199,7 @@ async function addNewTest(name, description) {
     setNewThemeTests(result).then();
 
 }
+
 async function editTest(name, description) {
     newTestFormCloseButton.click();
     const url = new URL(baseUrl + "/admin/editTest");
@@ -244,6 +216,7 @@ async function editTest(name, description) {
     setNewThemeTests(result).then();
 
 }
+
 async function deleteTest() {
     const url = new URL(baseUrl + "/admin/removeTest");
     let params = {topicId: currentThemeId, testId: currentTestId};
@@ -260,81 +233,6 @@ async function deleteTest() {
 
 
 }
-
-createNewTestForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const formData = new FormData(createNewTestForm);
-    const testName = formData.get('testName');
-    const testDescription = formData.get('testDescription');
-    if (isNewTest) {
-        addNewTest(testName, testDescription).then();
-    } else {
-        editTest(testName, testDescription).then();
-    }
-    createNewTestForm.reset();
-});
-function setCreateTestFormStartData() {
-    if (dataByTopicId != null && dataByTopicId.length !== 0) {
-        const {name, description} = dataByTopicId.find(({testId}) => {
-            return testId == currentTestId
-        });
-        createNewTestForm.querySelector('[name=testName]').value = name;
-        createNewTestForm.querySelector('[name=testDescription]').value = description;
-    }
-
-}
-function createTestClickHandler(event) {
-    const {target, isTrusted} = event;
-    console.log(event)
-    const openFormButton = target.closest('#createNewTestButton');
-    if (openFormButton) {
-        createNewTestForm.reset();
-    }
-    if (!isTrusted) {
-        setCreateTestFormStartData();
-        isNewTest = false;
-    } else {
-        isNewTest = true;
-    }
-
-}
-
-document.addEventListener('click', (event) => {
-    const {target} = event;
-    if (target.closest('#testThemes')) {
-        testThemeClickHandler(event);
-        deactivateAddThemeForm();
-    } else if (target.closest('.sidebar-add-theme')) {
-        addThemeClickHandler(target);
-    } else if (target.closest('.detail__create')) {
-        createTestClickHandler(event);
-    } else if (target.closest('#detailList')) {
-        refreshThemesValues();
-        detailClickHandler(target);
-        deactivateAddThemeForm();
-    }
-})
-function setThemeEditMode(newTheme) {
-    if (prevEditedTheme) {
-        prevEditedTheme.classList.remove('edit');
-        prevEditedTheme.querySelector('.theme-item__input').setAttribute('readonly', '');
-        prevEditedTheme.querySelector('.theme-item__input').value = prevEditedThemeValue;
-    }
-    prevEditedTheme = newTheme;
-    if (newTheme) {
-        newTheme.classList.add('edit');
-        newTheme.querySelector('.theme-item__input').removeAttribute('readonly');
-        newTheme.querySelector('.theme-item__input').focus();
-        prevEditedThemeValue = newTheme.querySelector('.theme-item__input').value;
-    }
-
-}
-function refreshThemesValues() {
-    setThemeEditMode(null);
-    prevEditedThemeValue = null;
-
-}
-
 
 async function addNewQuestion() {
     let data = null;
@@ -389,14 +287,174 @@ async function addNewQuestion() {
     setNewThemeTests(result).then();
 }
 
+async function getAnswers(questionId) {
+    const url = new URL(baseUrl + "/admin/getAnswers");
+    const params = {id: questionId};
+    url.search = new URLSearchParams(params).toString();
+    let response = await fetch(url.toString());
+    return await response.json();
+}
+
+async function editQuestion() {
+    const result = await getAnswers(currentQuestionId);
+    openQuestionEditForm(result);
+}
+
+async function deleteQuestion() {
+    const url = new URL(baseUrl + "/admin/removeQuestion");
+    const params = {questionId: currentQuestionId, topicId: currentThemeId};
+    url.search = new URLSearchParams(params).toString();
+    let response = await fetch(url.toString(), {
+        method: 'DELETE',
+        headers: {
+            "X-CSRF-TOKEN": token
+        }
+    });
+    let result = await response.json();
+    await setNewThemeTests(result);
+    console.log('delete question')
+}
+
+function getQuestionHtml({name, testId, questions}) {
+    const question = document.createElement('div');
+    question.className = 'test';
+    question.dataset.id = testId;
+    question.innerHTML = `
+    <div class="row">
+      <a class="col-md-9 test__text" data-bs-toggle="collapse" href='#test${testId}' role="button" aria-expanded="false" aria-controls="collapseExample">
+        ${name}
+      </a>
+      <button class="col-md-3 test__add-button text-md-end text-start" data-bs-toggle="modal" data-bs-target="#questionModal">new question <img class="pl-1 icon-btn" src="/img/add-icon.svg" alt="Add new question"></button>
+      <div class="col-md-3 test__control text-md-end">
+        <button class="test__edit-button"><img src="/img/edit-icon.svg" alt="Edit test" class="icon-btn"></button>
+        <button class="test__delete-button"><img src="/img/delete-icon.svg" alt="Delete test" class="icon-btn"></button>
+      </div>
+    </div>
+    <div class="collapse question__list mt-3" id=test${testId} data-test-id=${testId}>
+      ${
+        questions.reduce((accum, {questionId, description}, index) => {
+            return `
+            <div class="row question__item mb-2 mt-3" data-id=${questionId}>
+              <span class="index-num">${index + 1}.</span>
+              <div class="col-10 form-input" type="text">${description}</div>
+              <div class="question-control col-2 text-end">
+                <button class='question__edit-button' data-bs-toggle="modal" data-bs-target="#questionModal"><img src="/img/edit-icon.svg" alt="Edit test question" class="icon-btn"></button>
+                <button class='question__delete-button'><img src="/img/delete-icon.svg" alt="Delete test question" class="icon-btn"></button>
+              </div>
+            </div>
+          `
+        }, '')
+    }
+    </div>
+  `
+    return question
+
+}
+
+function changeActiveAddThemeFormStatus() {
+    addThemeForm.classList.toggle('active');
+    addThemeForm.previousElementSibling.classList.toggle('active');
+
+}
+
+function addThemeClickHandler(target) {
+    if (target.closest('.sidebar-add-theme__button')) {
+        changeActiveAddThemeFormStatus();
+    }
+
+}
+
+function deactivateAddThemeForm() {
+    addThemeForm.reset();
+    addThemeForm.classList.remove('active');
+
+}
+
+function testThemeClickHandler(event) {
+    event.preventDefault();
+    const {target} = event;
+    const themeItem = target.closest('.theme-item');
+    if (themeItem) {
+        const themeId = themeItem.dataset.id;
+        if (target.closest('.theme-item__input')) {
+            if (themeId !== currentThemeId) {
+                detail.classList.remove('active');
+                currentThemeId = themeId;
+                const themeName = themeItem.querySelector('.theme-item__input').value;
+                setThemeTitle(themeName);
+                setNewThemeTests().then();
+            }
+        } else if (target.closest('.theme-item__edit')) {
+            setThemeEditMode(themeItem);
+        } else if (target.closest('.theme-item__submit')) {
+            submitNewTheme(target).then();
+        } else if (target.closest('.theme-item__delete')) {
+            deleteTheme(target).then();
+        }
+    }
+}
+
+function setThemeTitle(newName) {
+    document.querySelector('.detail__title').textContent = newName;
+}
+
+function setCreateTestFormStartData() {
+    if (dataByTopicId != null && dataByTopicId.length !== 0) {
+        const {name, description} = dataByTopicId.find(({testId}) => {
+            return testId == currentTestId
+        });
+        createNewTestForm.querySelector('[name=testName]').value = name;
+        createNewTestForm.querySelector('[name=testDescription]').value = description;
+    }
+
+}
+
+function createTestClickHandler(event) {
+    const {target, isTrusted} = event;
+    console.log(event)
+    const openFormButton = target.closest('#createNewTestButton');
+    if (openFormButton) {
+        createNewTestForm.reset();
+    }
+    if (!isTrusted) {
+        setCreateTestFormStartData();
+        isNewTest = false;
+    } else {
+        isNewTest = true;
+    }
+
+}
+
+function setThemeEditMode(newTheme) {
+    if (prevEditedTheme) {
+        prevEditedTheme.classList.remove('edit');
+        prevEditedTheme.querySelector('.theme-item__input').setAttribute('readonly', '');
+        prevEditedTheme.querySelector('.theme-item__input').value = prevEditedThemeValue;
+    }
+    prevEditedTheme = newTheme;
+    if (newTheme) {
+        newTheme.classList.add('edit');
+        newTheme.querySelector('.theme-item__input').removeAttribute('readonly');
+        newTheme.querySelector('.theme-item__input').focus();
+        prevEditedThemeValue = newTheme.querySelector('.theme-item__input').value;
+    }
+
+}
+
+function refreshThemesValues() {
+    setThemeEditMode(null);
+    prevEditedThemeValue = null;
+
+}
+
 /**
  * TODO:
  * - If you want to use string as HTML code that will be parsed
  * it is a good idea to move it in separate function with
  * appropriate name
- * 
+ *
  * - Check all document on such mistake
- * 
+ *
  *  */
 
 function updateThemesList(data) {
@@ -418,13 +476,6 @@ function updateThemesList(data) {
     }).join('')}
   `
 }
-
-
-createQuestionForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    questionModalCloseButton.click();
-    addNewQuestion().then();
-});
 
 function setActiveTopic(index) {
     document.getElementById('testThemes').children.item(0).children.item(index).children.item(0).click();
@@ -464,19 +515,6 @@ function openQuestionEditForm({description, answerDTOList}) {
     })
 }
 
-async function getAnswers(questionId) {
-    const url = new URL(baseUrl + "/admin/getAnswers");
-    const params = {id: questionId};
-    url.search = new URLSearchParams(params).toString();
-    let response = await fetch(url.toString());
-    return await response.json();
-}
-
-async function editQuestion() {
-    const result = await getAnswers(currentQuestionId);
-    openQuestionEditForm(result);
-}
-
 function setCurrentTestId(target) {
     currentTestId = target.closest('.test').dataset.id;
 }
@@ -502,19 +540,9 @@ function detailClickHandler(target) {
     }
 }
 
-
 function createNewQuestion() {
     questionFormAnswerField.append(getNewAnswerField());
 }
-
-createQuestionForm.addEventListener('click', ({target}) => {
-    if (target.closest('.add-answer-button')) {
-        createNewQuestion()
-    } else if (target.closest('.answer__delete-button')) {
-        target.closest('.answer').remove();
-    }
-})
-
 
 function clickTestHandler(target) {
     setCurrentTestId(target);
@@ -531,26 +559,4 @@ function clickTestHandler(target) {
     }
 }
 
-async function deleteQuestion() {
-    const url = new URL(baseUrl + "/admin/removeQuestion");
-    const params = {questionId: currentQuestionId, topicId: currentThemeId};
-    url.search = new URLSearchParams(params).toString();
-    let response = await fetch(url.toString(), {
-        method: 'DELETE',
-        headers: {
-            "X-CSRF-TOKEN": token
-        }
-    });
-    let result = await response.json();
-    await setNewThemeTests(result);
-    console.log('delete question')
-}
-
-detailList.addEventListener('click', ({target}) => {
-    if (target.closest('.test')) {
-        clickTestHandler(target);
-    }
-})
-
-// TODO: change this id name. It is awful :/
 document.getElementById('topicItem0').click();
