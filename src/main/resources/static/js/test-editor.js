@@ -224,6 +224,7 @@ async function addNewTest(name, description) {
         body: JSON.stringify(testInfo)
     });
     const result = await response.json();
+    dataByTopicId = result;
     setNewThemeTests(result).then();
 
 }
