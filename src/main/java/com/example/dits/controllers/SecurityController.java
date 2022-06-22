@@ -1,5 +1,6 @@
 package com.example.dits.controllers;
 
+import com.example.dits.dto.TopicDTO;
 import com.example.dits.entity.Topic;
 import com.example.dits.entity.User;
 import com.example.dits.service.TopicService;
@@ -27,50 +28,44 @@ public class SecurityController {
     private final TopicService topicService;
 
     @GetMapping("/user/chooseTest")
-    public String userPage(HttpSession session,ModelMap model) {
+    public String userPage(HttpSession session, ModelMap model) {
         User user = userService.getUserByLogin(getPrincipal());
-        List<Topic> topicList = topicService.findAll();
-        List<Topic> topicsWithQuestions = new ArrayList<>();
-        for (Topic i:topicList){
-            if (i.getTestList().size() != 0){
-                topicsWithQuestions.add(i);
-            }
-        }
-          session.setAttribute("user", user);
-        model.addAttribute("title","Testing");
-        model.addAttribute("topicWithQuestions",topicsWithQuestions);
+        List<TopicDTO> topicsWithQuestions = topicService.getTopicsWithQuestions();
+        session.setAttribute("user", user);
+        model.addAttribute("title", "Testing");
+        model.addAttribute("topicWithQuestions", topicsWithQuestions);
         return "user/chooseTest";
     }
 
     @GetMapping("/login")
-    public String loginPage(ModelMap model){
-        model.addAttribute("title","Login");
-        return "login";}
+    public String loginPage(ModelMap model) {
+        model.addAttribute("title", "Login");
+        return "login";
+    }
 
     @GetMapping("/accessDenied")
-    public String accessDeniedGet(){
+    public String accessDeniedGet() {
         return "accessDenied";
     }
 
     @GetMapping("/logout")
-    public String logoutPage(HttpServletRequest request, HttpServletResponse response){
+    public String logoutPage(HttpServletRequest request, HttpServletResponse response) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if(auth != null)
-            new SecurityContextLogoutHandler().logout(request,response,auth);
+        if (auth != null)
+            new SecurityContextLogoutHandler().logout(request, response, auth);
 
         return "redirect:/login?logout";
     }
 
-    private static String getPrincipal(){
+    private static String getPrincipal() {
         String userName;
         Object principal = SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
 
-        if(principal instanceof UserDetails){
+        if (principal instanceof UserDetails) {
             userName = ((UserDetails) principal).getUsername();
-        }
-        else
+        } else
             userName = principal.toString();
         return userName;
     }

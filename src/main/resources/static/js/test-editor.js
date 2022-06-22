@@ -90,12 +90,13 @@ addThemeForm.addEventListener('submit', async (event) => {
     if (newThemeValue.length) {
         const url = new URL("http://localhost:8080/admin/addTopic");
         console.log(newThemeValue);
-        const params = {name: newThemeValue};
-        url.search = new URLSearchParams(params).toString();
+        const topic = {topicName: newThemeValue};
         const response = await fetch(url, {
             method: 'POST', headers: {
+                "Content-Type": "application/json",
                 "X-CSRF-TOKEN": token
-            }
+            },
+            body: JSON.stringify(topic)
         });
         const result = await response.json();
         updateThemesList(result);
@@ -134,17 +135,17 @@ async function setNewThemeTests(data) {
 async function submitNewTheme(target) {
     const themeItem = target.closest('.theme__item');
     const themeId = themeItem.dataset.id;
-    const {value: name} = themeItem.querySelector('.theme-item__input');
+    const {value: topicName} = themeItem.querySelector('.theme-item__input');
     const url = new URL("http://localhost:8080/admin/editTopic");
-    let params = {name, id: themeId};
-    url.search = new URLSearchParams(params).toString();
+    let topic = {topicName, topicId: themeId};
     console.log(token);
     const response = await fetch(url, {
         method: 'PUT',
         headers: {
             "Content-Type": "application/json",
             "X-CSRF-TOKEN": token
-        }
+        },
+        body: JSON.stringify(topic)
     });
     const result = await response.json();
     updateThemesList(result);
@@ -203,14 +204,14 @@ const newTestFormCloseButton = document.getElementById('newTestFormCloseButton')
 async function addNewTest(name, description) {
     newTestFormCloseButton.click();
     const url = new URL("http://localhost:8080/admin/addTest");
-    let params = {name, description, topicId: currentThemeId};
-    url.search = new URLSearchParams(params).toString();
+    let testInfo = {name, description, topicId: currentThemeId};
     const response = await fetch(url, {
         method: 'POST',
         headers: {
             "Content-Type": "application/json",
             "X-CSRF-TOKEN": token
-        }
+        },
+        body: JSON.stringify(testInfo)
     });
     const result = await response.json();
     setNewThemeTests(result);
@@ -219,14 +220,14 @@ async function addNewTest(name, description) {
 async function editTest(name, description) {
     newTestFormCloseButton.click();
     const url = new URL("http://localhost:8080/admin/editTest");
-    let params = {name, description, topicId: currentThemeId, testId: currentTestId};
-    url.search = new URLSearchParams(params).toString();
+    let testInfo = {name, description, topicId: currentThemeId, testId: currentTestId};
     const response = await fetch(url, {
         method: 'PUT',
         headers: {
             "Content-Type": "application/json",
             "X-CSRF-TOKEN": token
-        }
+        },
+        body: JSON.stringify(testInfo)
     });
     const result = await response.json();
     setNewThemeTests(result);
@@ -345,6 +346,7 @@ const questionModalCloseButton = document.getElementById('questionModalCloseButt
 async function addNewQuestion() {
     let data = null;
     let url = null;
+    let method = null;
     const formData = new FormData(createQuestionForm);
     const questionName = formData.get('question');
     const answersData = Array.from(questionFormAnswerField.querySelectorAll('.answer')).map(answer => {
@@ -369,6 +371,7 @@ async function addNewQuestion() {
             testId: currentTestId,
             answersData,
         }
+        method = 'POST'
     } else {
         url = '/admin/editQuestionAnswers'
         data = {
@@ -377,11 +380,12 @@ async function addNewQuestion() {
             questionId: currentQuestionId,
             answersData,
         }
+        method = 'PUT';
     }
     isNewQuestion = false;
 
     const response = await fetch(url, {
-        method: 'POST',
+        method: method,
         headers: {
             "Content-Type": "application/json",
             "X-CSRF-TOKEN": token

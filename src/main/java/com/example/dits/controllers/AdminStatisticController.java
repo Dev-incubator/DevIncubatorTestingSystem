@@ -18,15 +18,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/admin")
 public class AdminStatisticController {
-
-    private final ModelMapper modelMapper;
     private final StatisticServiceImpl statisticService;
     private final TopicService topicService;
     private final UserService userService;
 
     @GetMapping("/adminStatistic")
     public String testStatistic(ModelMap model){
-        List<TopicDTO> topicDTOList = topicService.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
+        List<TopicDTO> topicDTOList = topicService.findAll();
         model.addAttribute("topicList",topicDTOList);
         model.addAttribute("title","Statistic");
         return "admin/test-statistic";
@@ -56,9 +54,4 @@ public class AdminStatisticController {
         statisticService.deleteAll();
         return "redirect:/admin/adminStatistic";
     }
-
-    private TopicDTO convertToDTO(Topic topic){
-        return modelMapper.map(topic, TopicDTO.class);
-    }
-
 }

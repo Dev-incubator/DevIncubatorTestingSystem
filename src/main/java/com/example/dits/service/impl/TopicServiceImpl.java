@@ -1,20 +1,24 @@
 package com.example.dits.service.impl;
 
 import com.example.dits.DAO.TopicRepository;
+import com.example.dits.dto.TopicDTO;
 import com.example.dits.entity.Topic;
 import com.example.dits.service.TopicService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class TopicServiceImpl implements TopicService {
 
     private final TopicRepository repository;
+    private final ModelMapper modelMapper;
 
     @Transactional
     public void create(Topic topic) {
@@ -24,7 +28,7 @@ public class TopicServiceImpl implements TopicService {
     @Transactional
     public void update(Topic topic, int id) {
         Optional<Topic> t = repository.findById(id);
-        if(t.isEmpty())
+        if (t.isEmpty())
             return;
         else
             repository.save(topic);
@@ -41,8 +45,13 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Transactional
-    public List<Topic> findAll() {
-        return repository.findAll();
+    public List<TopicDTO> findAll() {
+        return repository.findAll().stream().map(f -> modelMapper.map(f, TopicDTO.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TopicDTO> getTopicsWithQuestions() {
+        return repository.findAll().stream().filter(f -> f.getTestList().size() != 0).map(f -> modelMapper.map(f, TopicDTO.class)).collect(Collectors.toList());
     }
 
     @Transactional
