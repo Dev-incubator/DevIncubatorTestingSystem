@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -46,12 +47,18 @@ public class TopicServiceImpl implements TopicService {
 
     @Transactional
     public List<TopicDTO> findAll() {
-        return repository.findAll().stream().map(f -> modelMapper.map(f, TopicDTO.class)).collect(Collectors.toList());
+        return repository.findAll().stream()
+                .map(f -> modelMapper.map(f, TopicDTO.class))
+                .sorted(Comparator.comparingInt(TopicDTO::getTopicId))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<TopicDTO> getTopicsWithQuestions() {
-        return repository.findAll().stream().filter(f -> f.getTestList().size() != 0).map(f -> modelMapper.map(f, TopicDTO.class)).collect(Collectors.toList());
+        return repository.findAll().stream()
+                .filter(f -> f.getTestList().size() != 0)
+                .map(f -> modelMapper.map(f, TopicDTO.class))
+                .collect(Collectors.toList());
     }
 
     @Transactional

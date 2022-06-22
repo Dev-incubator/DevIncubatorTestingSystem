@@ -5,44 +5,52 @@
  * 
  */
 
-let data = [
-    {
-        "testName": "Second test",
-        "count": 19,
-        "avgProc": 80,
-        "questionStatistics": [
-            {"count": 3, "avgProc": 100},
-            {"count": 10, "avgProc": 90},
-            {"count": 10, "avgProc": 60},
-            {"count": 10, "avgProc": 70},
-            {"count": 19, "avgProc": 84}
-        ]
-    },
-    {
-        "testName": "TherdNameTest",
-        "count": 0,
-        "avgProc": 0,
-        "questionStatistics": []
-    }]
-
 const themeSelect = document.getElementById('themeSelect');
 const resultTableBody = document.getElementById('resultTableBody');
 const dataContainer = document.getElementById('dataContainer');
-const sortTestsButton = document.getElementById('sortTestsButton');
-const token = document.head.querySelector('meta[name="_csrf"]').getAttribute('content');
 let isReverseTest = false;
+const baseUrl = window.origin;
+
+themeSelect.addEventListener('change', ({target}) => {
+    dataContainer.classList.remove('active');
+    try {
+        getTestStatistics(target).then();
+    } catch (err) {
+        console.error(err)
+    }
+});
+
+dataContainer.addEventListener('click', (event) => {
+    const {target} = event;
+    // TODO: fix this class name
+    if (target.closest('#sortTestsButton')) {
+        isReverseTest = !isReverseTest;
+        reverseTests(target);
+    } else if (target.closest('.question')) {
+        questionClickHandler(target)
+    }
+});
+
+async function getTestStatistics(target) {
+    const themeId = target.value;
+    const url = new URL(baseUrl + "/admin/getTestsStatistic");
+    const params = {id: themeId};
+    url.search = new URLSearchParams(params).toString();
+    const response = await fetch(url.toString());
+    const result = await response.json();
+    updateResult(result);
+}
 
 function updateResult(data) {
     if (!data) {
         return
     }
-
     // TODO:
     // if you want to parse string below as HTML
     // it is a good idea to move it in separate function
     // to split the idea from the implementation
 
-    const reversedData = isReverseTest ? [...data].reverse() : data;
+    const reversedData = isReverseTest ? [...data].reverse() : [...data];
     dataContainer.classList.add('active');
     resultTableBody.innerHTML = `
     ${reversedData.map(({testName, count, avgProc, questionStatistics}, index) => {
@@ -61,12 +69,12 @@ function updateResult(data) {
               <span class="col-sm-8 text-start question__head-text">Questions</span>
               <div class="col-sm-3 offset-sm-1 text-sm-end text-start question__head-text">
                 <span>Correct</span>
-                <button class="sort-button"><img src="/img/sort-icon.svg"></button>
+                <button class="sort-button"><img src="/img/sort-icon.svg" alt="sort"></button>
               </div>
             </div>
-            <hr class="green_line" size="2">
+            <hr class="green_line">
             <div class="question__list">
-              ${questionStatistics.map(({questionDescription, avgProc}, index) => {
+              ${questionStatistics.map(({questionDescription, avgProc}) => {
             return `
                   <div class="mt-3 question__item row">
                     <div class="col-sm-9 question__name textrea_autoheight" readonly>${questionDescription}</div>
@@ -82,23 +90,6 @@ function updateResult(data) {
     }).join('')}
   `
 }
-
-// Add separate finction to send GET requests
-themeSelect.addEventListener('change', async ({target}) => {
-    dataContainer.classList.remove('active');
-    try {
-        const themeId = target.value;
-        const url = new URL("http://localhost:8080/admin/getTestsStatistic");
-        const params = {id: themeId};
-        url.search = new URLSearchParams(params).toString();
-        const response = await fetch(url);
-        const result = await response.json();
-        // result = data
-        updateResult(result);
-    } catch (err) {
-        console.error(err)
-    }
-});
 
 function reverseTests(target) {
     target.closest('#sortTestsButton').classList.toggle('reverse');
@@ -125,16 +116,3 @@ function questionClickHandler(target) {
         reverseQuestions(target);
     }
 }
-
-dataContainer.addEventListener('click', (event) => {
-    const {target} = event;
-    // TODO: fix this class name
-    if (target.closest('#sortTestsButton')) {
-        isReverseTest = !isReverseTest;
-        reverseTests(target);
-    } else if (target.closest('.question')) {
-        questionClickHandler(target)
-    }
-})
-
-  

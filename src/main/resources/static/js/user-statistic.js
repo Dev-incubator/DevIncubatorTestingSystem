@@ -1,41 +1,41 @@
-let data = [
-    {
-        "testName": "Second test",
-        "count": 19,
-        "avgProc": 80,
-        "questionStatistics": [
-            {"count": 3, "avgProc": 100},
-            {"count": 10, "avgProc": 90},
-            {"count": 10, "avgProc": 60},
-            {"count": 10, "avgProc": 70},
-            {"count": 19, "avgProc": 84}
-        ]
-    },
-    {
-        "testName": "TherdNameTest",
-        "count": 0,
-        "avgProc": 0,
-        "questionStatistics": []
-    }]
-
 const themeSelect = document.getElementById('themeSelect');
 const resultTableBody = document.getElementById('resultTableBody');
 const dataContainer = document.getElementById('dataContainer');
-const sortTestsButton = document.getElementById('sortTestsButton');
 let isReverseTest = false;
-const baseUrl = "http:localhost:8080";
+const baseUrl = window.origin;
+
+dataContainer.addEventListener('click', (event) => {
+    const {target} = event;
+    if (target.closest('#sortTestsButton')) {
+        isReverseTest = !isReverseTest;
+        reverseTests(target);
+    }
+});
+
+themeSelect.addEventListener('change', async ({target}) => {
+    dataContainer.classList.remove('active');
+    try {
+        getUserTestStatistics(target).then()
+    } catch (err) {
+        console.error(err)
+    }
+});
+
+async function getUserTestStatistics(target) {
+    const userId = target.value;
+    const url = new URL(baseUrl + "/admin/getUserTestsStatistic");
+    const params = {id: userId};
+    url.search = new URLSearchParams(params).toString();
+    const response = await fetch(url.toString());
+    const result = await response.json();
+    updateResult(result);
+}
 
 function updateResult(data) {
     if (!data) {
         return
     }
 
-    // TODO
-    // remove all debug output
-    console.log(isReverseTest)
-
-    // TODO:
-    // move this string below to separate function
     const reversedData = isReverseTest ? [...data].reverse() : [...data];
     dataContainer.classList.add('active');
     resultTableBody.innerHTML = `
@@ -56,22 +56,6 @@ function updateResult(data) {
   `
 }
 
-// TODO: add separate function to send GET requests
-themeSelect.addEventListener('change', async ({target}) => {
-    dataContainer.classList.remove('active');
-    try {
-        const userId = target.value;
-        const url = new URL(baseUrl + "/admin/getUserTestsStatistic");
-        const params = {id: userId};
-        url.search = new URLSearchParams(params).toString();
-        const response = await fetch(url);
-        const result = await response.json();
-        updateResult(result);
-    } catch (err) {
-        console.error(err)
-    }
-});
-
 function reverseTests(target) {
     target.closest('#sortTestsButton').classList.toggle('reverse');
     const reversedTests = Array.from(resultTableBody.querySelectorAll('.test')).reverse();
@@ -80,13 +64,4 @@ function reverseTests(target) {
         resultTableBody.append(test);
     })
 }
-
-
-dataContainer.addEventListener('click', (event) => {
-    const {target} = event;
-    if (target.closest('#sortTestsButton')) {
-        isReverseTest = !isReverseTest;
-        reverseTests(target);
-    }
-})
   

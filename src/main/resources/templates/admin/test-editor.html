@@ -26,7 +26,7 @@
                         <div class="theme__section">
                             <div class="theme__item theme-item d-flex" th:each="topic,iter : ${topicLists}"
                                  data-th-data-id="${topic.topicId}">
-                                <input class="theme-item__input" th:id="'themeItemIndex' + ${iter.index}"
+                                <input class="theme-item__input" th:id="'topicItem' + ${iter.index}"
                                        th:value="${topic.topicName}" readonly>
                                 <span class="theme-item__control">
                       <button class="theme-item__submit"><img src="../../static/img/submit-icon.svg" class="icon-btn"
