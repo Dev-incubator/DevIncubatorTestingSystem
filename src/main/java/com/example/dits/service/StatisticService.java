@@ -1,5 +1,7 @@
 package com.example.dits.service;
 
+import com.example.dits.dto.StatisticDTO;
+import com.example.dits.dto.TestStatistic;
 import com.example.dits.entity.*;
 
 import java.util.List;
@@ -14,7 +16,8 @@ public interface StatisticService {
     void saveMapOfStat(Map<String, Statistic> map, String endTest);
     List<Statistic> getStatisticsByUser(User user);
     List<Statistic> getStatisticByQuestion(Question question);
-    void saveStatisticsToDB(List<Statistic> statistics);
+    List<TestStatistic> getListOfTestsWithStatisticsByTopic(int  topicId);
+    void saveListOfStatisticsToDB(List<StatisticDTO> statistics);
     void removeStatisticByUserId(int userid);
     void deleteAll();
 }

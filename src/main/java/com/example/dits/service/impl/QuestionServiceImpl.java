@@ -4,17 +4,20 @@ import com.example.dits.DAO.AnswerRepository;
 import com.example.dits.DAO.QuestionRepository;
 import com.example.dits.DAO.TestRepository;
 import com.example.dits.dto.AnswerEditModel;
+import com.example.dits.dto.QuestionDTO;
 import com.example.dits.dto.QuestionEditModel;
 import com.example.dits.entity.Answer;
 import com.example.dits.entity.Question;
 import com.example.dits.entity.Test;
 import com.example.dits.service.QuestionService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionRepository questionRepository;
     private final TestRepository testRepository;
     private final AnswerRepository answerRepository;
+    private final ModelMapper modelMapper;
 
     @Transactional
     public List<Question> getQuestionsByTestName(String name){
@@ -37,8 +41,10 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Transactional
     @Override
-    public List<Question> getQuestionsByTest(Test test) {
-        return questionRepository.getQuestionsByTest(test);
+    public List<QuestionDTO> getQuestionsByTest(Test test) {
+        return questionRepository.getQuestionsByTest(test).stream()
+                .map(f -> modelMapper.map(f, QuestionDTO.class))
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -48,7 +54,7 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public String getDescriptionFromQuestionList(List<Question> questionList, int index) {
+    public String getDescriptionFromQuestionList(List<QuestionDTO> questionList, int index) {
         return questionList.get(index).getDescription();
     }
 

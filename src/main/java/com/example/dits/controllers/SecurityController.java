@@ -21,7 +21,7 @@ public class SecurityController {
 
     @GetMapping("/login-handle")
     public String loginHandle(HttpSession session) {
-        session.setAttribute("user", userService.getUserByLogin(getUsername()));
+        session.setAttribute("user", userService.getUserInfoByLogin(getUsername()));
         String authority = getAuthority();
         return authority.contains("USER") ? "redirect:/user/chooseTest" : "redirect:/admin/testBuilder";
     }

@@ -21,8 +21,13 @@ public class UserServiceImpl implements UserService {
     private final ModelMapper modelMapper;
 
     @Transactional
-    public UserInfoDTO getUserByLogin(String login){
+    public UserInfoDTO getUserInfoByLogin(String login){
         return modelMapper.map(repository.getUserByLogin(login), UserInfoDTO.class);
+    }
+
+    @Override
+    public User getUserByLogin(String login) {
+        return repository.getUserByLogin(login);
     }
 
     @Override

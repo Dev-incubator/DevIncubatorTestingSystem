@@ -6,6 +6,7 @@ import com.example.dits.entity.User;
 import java.util.List;
 
 public interface UserService {
-    UserInfoDTO getUserByLogin(String login);
+    UserInfoDTO getUserInfoByLogin(String login);
+    User getUserByLogin(String login);
     List<UserInfoDTO> getAllUsers();
 }
