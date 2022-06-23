@@ -13,7 +13,7 @@ public interface TestService {
      void save(Test test);
      List<Test> findAll();
      List<Test> getTestsByTopic(Topic topic);
-     List<Test> getTestsByTopicName(String name);
+     List<TestInfoDTO> getTestsByTopicName(String name);
      List<Test> getTestsByTopic_TopicId(int ID);
      List<TestInfoDTO> getTestInfoDTO (List<Test> tests);
      Test getTestByTestId(int id);

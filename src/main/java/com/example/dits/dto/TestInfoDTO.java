@@ -10,7 +10,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TestInfoDTO implements Serializable {
+    private int testId;
     private String name;
     private String description;
-    private int testId;
+    private int topicId;
 }

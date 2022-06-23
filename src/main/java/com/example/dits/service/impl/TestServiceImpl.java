@@ -6,17 +6,20 @@ import com.example.dits.entity.Test;
 import com.example.dits.entity.Topic;
 import com.example.dits.service.TestService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TestServiceImpl implements TestService {
 
    private final TestRepository repository;
+   private final ModelMapper modelMapper;
 
    @Transactional
    public void create(Test test) {
@@ -55,8 +58,10 @@ public class TestServiceImpl implements TestService {
 
    @Transactional
    @Override
-   public List<Test> getTestsByTopicName(String name) {
-      return repository.getTestsByTopicName(name);
+   public List<TestInfoDTO> getTestsByTopicName(String name) {
+      return repository.getTestsByTopicName(name).stream()
+              .map(f -> modelMapper.map(f, TestInfoDTO.class))
+              .collect(Collectors.toList());
    }
 
    @Override

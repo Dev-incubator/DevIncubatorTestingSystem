@@ -1,5 +1,7 @@
 package com.example.dits.service;
 
+import com.example.dits.dto.AnswerDTO;
+import com.example.dits.dto.QuestionDTO;
 import com.example.dits.entity.Answer;
 import com.example.dits.entity.Question;
 
@@ -13,7 +15,7 @@ public interface AnswerService {
     void save(Answer a);
     List<Answer> findAll();
     List<Answer> getAnswersByQuestion(Question question);
-    List<Answer> getAnswersFromQuestionList(List<Question> questionList, int index);
-    boolean isRightAnswer(List<Integer> answeredQuestion, List<Question> questionList, int questionNumber);
+    List<AnswerDTO> getAnswersFromQuestionList(List<QuestionDTO> questionList, int index);
+    boolean isRightAnswer(List<Integer> answeredQuestion, List<QuestionDTO> questionList, int questionNumber);
 
 }

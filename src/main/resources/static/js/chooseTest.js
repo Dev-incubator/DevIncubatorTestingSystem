@@ -4,7 +4,7 @@
  * 
  * DESCRIPTION:
  * Current version of script send request for each
- * topic and recieve next data in answer:
+ * topic and receive next data in answer:
  * [
  *     { testName, testDescription, testId },
  *     { next piece of data for another test for that topic },
@@ -38,7 +38,7 @@ const testDescription = document.getElementById("testDescription");
 const startTestButton = document.getElementById("startTestButton");
 const testSelect = document.getElementById("testSelect");
 
-const baseUrl = "http://localhost:8080";
+const baseUrl = window.origin;
 
 let testsData = null;
 
@@ -47,24 +47,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectedOption = testThemeSelect.querySelector("option:checked");
     const value = selectedOption.textContent;
     console.log(value);
-    updateCurrentThemeData(value);
+    updateCurrentThemeData(value).then();
 });
 
 testThemeSelect.addEventListener("change", e => {
     const selectedOption = e.target.querySelector("option:checked");
     const value = selectedOption.textContent;
     console.log(value);
-    updateCurrentThemeData(value);
+    updateCurrentThemeData(value).then();
 });
 
 async function updateCurrentThemeData(themeName) {
     let url = new URL(baseUrl + "/user/chooseTheme");
     url.search = new URLSearchParams({ theme : themeName }).toString();
 
-    const response = await fetch(url);
-    const result = await response.json();
-
-    testsData = result;
+    const response = await fetch(url.toString());
+    testsData = await response.json();
     updateTestsData();
 }
 
@@ -92,7 +90,7 @@ testSelect.addEventListener("change", updateDescription)
 function updateDescription() {
     const selectedOption = Array.from(testSelect.querySelectorAll("option")).filter(o => o.selected === true)[0];
 
-    if (selectedOption != null && selectedOption != undefined) {
+    if (selectedOption != null) {
         const testOptionIndex = selectedOption.dataset.index;
         testDescription.innerText = testsData[Number(testOptionIndex)].description;
     } else {
